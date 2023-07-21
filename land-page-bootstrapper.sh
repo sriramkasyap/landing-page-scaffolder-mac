@@ -1,8 +1,8 @@
 #!/bin/bash
 
-ht_path="/usr/local/var/www/"
+ht_path="/Users/sriramkasyapm/Works/www/"
 
-alias www="cd /usr/local/var/www"
+alias www="cd /Users/sriramkasyapm/Works/www"
 
 echo "Enter directory name"
 read dir_name
@@ -396,7 +396,7 @@ cat > gulpfile.babel.js <<EOF
 "use strict";
 
 var project = "$dir_name",
-    projectURL = \`http://localhost/\${project}/\`,
+    projectURL = `http://localhost/${project}/`,
     styleSRC = "src/scss",
     styleDestination = "dist/css",
     scriptSRC = "src/js",
@@ -409,8 +409,8 @@ var project = "$dir_name",
 /**
  * Load Plugins
  */
-import gulp from "gulp";
-import sass from "gulp-sass";
+const gulp = require("gulp");
+const sass = require("gulp-sass")(require("sass"));
 import autoprefixer from "gulp-autoprefixer";
 import sourcemaps from "gulp-sourcemaps";
 import rename from "gulp-rename";
@@ -441,17 +441,17 @@ const AUTOPREFIXER_BROWSERS = [
     "opera >= 23",
     "ios >= 7",
     "android >= 4",
-    "bb >= 10"
+    "bb >= 10",
 ];
 
 /**
  * Initialize the BrowserSync. It's the Key!
  */
-const browserSyncStart = done => {
+const browserSyncStart = (done) => {
     browserSync.init({
         proxy: projectURL,
         open: true,
-        injectChanges: true
+        injectChanges: true,
     });
     done();
 };
@@ -459,7 +459,7 @@ const browserSyncStart = done => {
 /**
  * Task to reload Browser using BrowserSync
  */
-const reload = done => {
+const reload = (done) => {
     browserSync.reload();
     done();
 };
@@ -471,15 +471,15 @@ const reload = done => {
  * Correct line endings, and
  * Inject the changes into the browser
  */
-const compileSass = done => {
-    gulp.src(\`\${styleSRC}/**/*.scss\`)
+const compileSass = (done) => {
+    gulp.src(`${styleSRC}/**/*.scss`)
         .pipe(sourcemaps.init({ loadMaps: true }))
         .pipe(
             sass({
                 errLogToConsole: true,
                 outputStyle: "compressed",
                 sourceComments: "map",
-                sourceMap: "sass"
+                sourceMap: "sass",
             })
         )
         .on("error", console.error.bind(console))
@@ -498,14 +498,14 @@ const compileSass = done => {
  * Transpile Javascript (or ES6 if you wanna be super cool),
  * minify it and put it in it's place (Script Destination, obviously)
  */
-const compileJS = done => {
-    gulp.src(\`\${scriptSRC}/**/*.js\`)
+const compileJS = (done) => {
+    gulp.src(`${scriptSRC}/**/*.js`)
         .pipe(babel())
         .pipe(
             minify({
                 ext: {
-                    min: ".js"
-                }
+                    min: ".js",
+                },
             })
         )
         .pipe(gulp.dest(scriptDestination))
@@ -517,11 +517,11 @@ const compileJS = done => {
  * Optimize images, because who wants a slow web page?
  * Then also show them their place.
  */
-const optimizeImg = done => {
-    gulp.src(\`\${imgSRC}/*\`)
+const optimizeImg = (done) => {
+    gulp.src(`${imgSRC}/*`)
         .pipe(
             imagemin({
-                progressive: true
+                progressive: true,
             })
         )
         .pipe(gulp.dest(imgDest))
@@ -532,24 +532,24 @@ const optimizeImg = done => {
 /**
  * Watch Sass files in Style Sources folder for changes and Compile.
  */
-const watchSass = done => {
-    gulp.watch(\`\${styleSRC}/**/*.scss\`, compileSass);
+const watchSass = (done) => {
+    gulp.watch(`${styleSRC}/**/*.scss`, compileSass);
     done();
 };
 
 /**
  * Watch Javascript files for changes and compile them if they do.
  */
-const watchJS = done => {
-    gulp.watch(\`\${scriptSRC}/**/*.js\`, gulp.series(compileJS, reload));
+const watchJS = (done) => {
+    gulp.watch(`${scriptSRC}/**/*.js`, gulp.series(compileJS, reload));
     done();
 };
 
 /**
  * Watch images for changes and Optimize the hell out of them
  */
-const watchImg = done => {
-    gulp.watch(\`\${imgSRC}/*\`, optimizeImg);
+const watchImg = (done) => {
+    gulp.watch(`${imgSRC}/*`, optimizeImg);
     done();
 };
 
@@ -557,7 +557,7 @@ const watchImg = done => {
  * Life is too short to keep hitting F5 and Cmd + R
  * Watch HTML Files for changes and reload the web page when they do.
  */
-const watchHTML = done => {
+const watchHTML = (done) => {
     gulp.watch(htmlWatchFiles, reload);
     done();
 };
@@ -566,7 +566,7 @@ const watchHTML = done => {
  * Life is still Short..
  * Watch PHP files for changes and reload the web page when they do.
  */
-const watchPHP = done => {
+const watchPHP = (done) => {
     gulp.watch(phpWatchFiles, reload);
     done();
 };
@@ -574,7 +574,7 @@ const watchPHP = done => {
 /**
  * Watch Image destination folder for new optimized images and reload the web page.
  */
-const watchDistImg = done => {
+const watchDistImg = (done) => {
     gulp.watch(imgDest, reload);
     done();
 };
@@ -606,10 +606,15 @@ const serve = gulp.series(compile, browserSyncStart);
  */
 const defaultTask = gulp.parallel(serve, watch);
 
+/*
+*   Build Task: Compile sass, JS and optimize images
+*/
+const build = gulp.series(compileSass, compileJS, optimizeImg);
+
 /**
  * Let's start Shippin'
  */
-export { compile, serve, watch };
+export { compile, serve, watch, build };
 export default defaultTask;
 EOF
 
@@ -622,7 +627,7 @@ cat > package.json <<EOF
 {
     "name": "$project_name",
     "author": "Sriram Kasyap Meduri",
-    "version": "1.0.4",
+    "version": "2.0.0",
     "license": "GPL-2.0",
     "dependencies": {},
     "devDependencies": {
@@ -634,7 +639,7 @@ cat > package.json <<EOF
         "babel-preset-es2015": "^6.24.1",
         "babel-register": "^6.26.0",
         "browser-sync": "^2.26.3",
-        "gulp": "^4.0.0",
+        "gulp": "^4.0.2",
         "gulp-autoprefixer": "^6.0.0",
         "gulp-babel": "^7.0.0",
         "gulp-filter": "^5.1.0",
@@ -644,9 +649,15 @@ cat > package.json <<EOF
         "gulp-minify": "^3.1.0",
         "gulp-notify": "^3.2.0",
         "gulp-rename": "^1.4.0",
-        "gulp-sass": "^4.0.2",
+        "gulp-sass": "^5.1.0",
         "gulp-sourcemaps": "^2.6.4",
-        "regenerator-runtime": "^0.13.1"
+        "regenerator-runtime": "^0.13.1",
+        "sass": "^1.64.0"
+    },
+    "scripts": {
+        "build": "gulp build && cp -r *.html dist",
+        "dev": "gulp",
+        "start": "gulp"
     }
 }
 
